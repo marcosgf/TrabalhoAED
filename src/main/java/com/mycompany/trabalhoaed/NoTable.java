@@ -1,3 +1,5 @@
+package com.mycompany.trabalhoaed;
+
 /*
  * To change this license header, choose License Headers in Project Properties.
  * To change this template file, choose Tools | Templates
@@ -12,11 +14,13 @@ public class NoTable {
     private String name;
     private int nroElements;
     private String[] filds;
+    private NoTable next ;
     private NoRecord[] elements;
     
     
     public NoTable(String name){
         this.name = name;
+        this.next = null;
     }
     /**
      * @return the name
@@ -72,5 +76,32 @@ public class NoTable {
      */
     public void setElements(NoRecord[] elements) {
         this.elements = elements;
+    }
+
+    /**
+     * @return the next
+     */
+    public NoTable getNext() {
+        return next;
+    }
+
+    /**
+     * @param next the next to set
+     */
+    public void setNext(NoTable next) {
+        this.next = next;
+    }
+    
+    public int[] getPosPkey(String[] pkey){
+        int[] pos = new int[pkey.length];
+        int j =0;
+        for(String key: pkey){
+            for(int i = 0 ; i < this.filds.length ; i ++){
+                if(key.equals(this.filds[i])){
+                    pos[j] = i;
+                }
+            }
+        }
+        return pos;
     }
 }
