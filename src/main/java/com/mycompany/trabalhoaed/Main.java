@@ -12,32 +12,42 @@ import java.io.IOException;
  *
  * @author marcos
  */
-
-
-
 public class Main {
 
-    private static Boolean isPrime (int n){
-        int cont=0;
+    private static Boolean isPrime(int n) {
+        int cont = 0;
         int r = (int) Math.sqrt(n);
         System.out.println(r);
-        for(int i =2 ; i <= r ; i++){
-            if(n % i == 0 ){
+        for (int i = 2; i <= r; i++) {
+            if (n % i == 0) {
                 return false;
             }
         }
-        return true;  
+        return true;
     }
-    
+
+    private static double hashRegister(String str, int n) {
+
+        double result = 0;
+        char[] letras = str.toCharArray();
+        for (int j = 0; j < letras.length; j++) {
+            
+            result = (double)(33 * result) + ((int)letras[j]);
+        }
+        return result % n;
+    }
+
     /**
      * @param args the command line arguments
      */
     public static void main(String[] args) throws IOException {
         // TODO code application logic here
         Index teste = new Index("usda.sql",13);
-        teste.ReadDump();
-        teste.PrintStruct();
-//        
+         teste.ReadDump();
+         //teste.PrintStruct();
+//        String testesssss = "01029203S27";
+//        System.out.println(hashRegister(testesssss,193));
+////        
 //        System.out.println(isPrime(2));
 //        System.out.println(isPrime(4));
 //        System.out.println(isPrime(9));
@@ -46,17 +56,11 @@ public class Main {
 //        System.out.println(isPrime(20));
 //         */
 //        String[] testess = {"data_src", "datsrcln", "deriv_cd", "fd_group", "food_des", "footnote", "nut_data", "nutr_def", "src_cd", "weight"};
-//        int result = 0;
+//            
 //        for (int i = 0; i < testess.length; i++) {
-//            char[] letras = testess[i].toCharArray();
-//            for(int j = 0 ; j < letras.length; j++){
-//              result += (int) ((int) letras[j]);
-//            }
-//            System.out.println(result);
-//             result = 53*result % 13;
-//            System.out.println(testess[i]+" = "+result);
-//            result = 0;
+//            System.out.println(testess[i]+" "+hashRegister(testess[i],13 ));
 //        }
+            
 
     }
 

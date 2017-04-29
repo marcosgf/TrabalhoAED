@@ -15,12 +15,14 @@ public class NoTable {
     private int nroElements;
     private String[] filds;
     private NoTable next ;
+    private NoTable last;
     private NoRecord[] elements;
     
     
     public NoTable(String name){
         this.name = name;
         this.next = null;
+        this.last =null;
     }
     /**
      * @return the name
@@ -99,6 +101,7 @@ public class NoTable {
             for(int i = 0 ; i < this.filds.length ; i ++){
                 if(key.equals(this.filds[i])){
                     pos[j] = i;
+                    j++;
                 }
             }
         }

@@ -14,10 +14,12 @@ public class NoRecord {
     private String id;
     private String[] info;
     private NoRecord next;
+    private NoRecord last;
     
     public NoRecord(String id){
         this.id = id;
         this.next = null;
+        this.last = null;
     }
 
     /**
@@ -60,6 +62,20 @@ public class NoRecord {
      */
     public void setNext(NoRecord next) {
         this.next = next;
+    }
+
+    /**
+     * @return the last
+     */
+    public NoRecord getLast() {
+        return last;
+    }
+
+    /**
+     * @param last the last to set
+     */
+    public void setLast(NoRecord last) {
+        this.last = last;
     }
     
         
