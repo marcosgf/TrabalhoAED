@@ -1,6 +1,8 @@
 package com.mycompany.trabalhoaed;
 
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -21,6 +23,7 @@ public class Index {
     private NoTable[] tables;
     private int nroTables;
     private int colisoesT = 0, colisoesR = 0;
+    private int insertions = 0;
 
     public Index(String path, int nroTables) {
         this.path = path;
@@ -30,6 +33,7 @@ public class Index {
 
     void ReadDump() throws IOException {
         int j = 0, TSize;
+        //BufferedWriter buffWrite = new BufferedWriter(new FileWriter("search.txt"));
         String nameTable, aux, text, id = "";
         int posT = 0, posR = 0;
         String[] filds, tab, info, line;
@@ -38,6 +42,7 @@ public class Index {
 
         text = new String(Files.readAllBytes(Paths.get(this.path)), StandardCharsets.UTF_8);
         line = text.split("\n");
+        long tempoInicial = System.currentTimeMillis();
         for (int i = 0; i < line.length; i++) {
             if (line[i].contains("CREATE TABLE ")) {//estamos em uma tabela
                 nameTable = line[i].replace("CREATE TABLE ", "");
@@ -60,7 +65,7 @@ public class Index {
             } else if (line[i].contains("COPY ")) {//estou na lista de elementos de uma tabela
                 nameTable = line[i].split(" ")[1];//nome da tabela que se trata os elementos
                 t = getTable(nameTable);//retorna o NoTable com aquele nome ps: a função getTable será com hashing
-                System.out.println(nameTable);
+                //System.out.println(nameTable);
                 i++;
                 j = i;
                 String[] keys = searchPkey(nameTable);
@@ -69,7 +74,7 @@ public class Index {
                     j++;
                 }
                 t.setNroElements(j - i);//numero de elementos daquela tabela
-                System.out.println("quantidade de registros: " + (j - i));
+                //System.out.println("quantidade de registros: " + (j - i));
                 TSize = ((j - i) * 7) / 5;
                 records = new NoRecord[TSize];//vetor de registros instanciado com a quantidade de elementos
                 while (!line[i].equals("\\.")) {
@@ -78,21 +83,22 @@ public class Index {
                     for (int k = 0; k < pkeys.length; k++) {
                         id += info[pkeys[k]].trim();
                     }
+                    //buffWrite.append(nameTable + "\t" + id.trim() + "\n");
                     insertRegister(info, id.trim(), TSize, records);
                     i++;
                     id = "";
                     info = null;
                 }
                 t.setElements(records);
-                System.out.println("colisões de tabelas :" + colisoesT);
-                System.out.println("colisões de registros :" + colisoesR);
-                System.out.println("");
-                colisoesR = 0;
-
+//                System.out.println("colisões de tabelas :" + colisoesT);
+//                System.out.println("colisões de registros :" + colisoesR);
+//                System.out.println("");
+//                colisoesR = 0;
             }
-
         }
-
+        System.out.println("Tempo para inserção de todos os registros: " + (System.currentTimeMillis() - tempoInicial));
+        //System.out.println("Quantidade de registros inseridos: "+insertions);
+        //buffWrite.close();
     }
 
     /**
@@ -237,7 +243,7 @@ public class Index {
         }
         return (long) (n * ((hash * A) - (long) (hash * A)));
     }
-    
+
     private long firstHashRegister(String str, int n) {
 
         long result = 0;
@@ -247,7 +253,7 @@ public class Index {
         }
         return (long) result % n;
     }
-    
+
     private Boolean isPrime(int n) {
         int cont = 0;
         int r = (int) Math.sqrt(n);
@@ -263,7 +269,7 @@ public class Index {
         t = new NoTable(name);
         t.setFilds(filds);//armazena o nome dos campos em um vetor de string na tabela t criada
         //hashing para tabela
-        int posT = (int)hashTable(t.getName());
+        int posT = (int) hashTable(t.getName());
         if (this.tables[posT] == null) {
             this.tables[posT] = t;
         } else {
@@ -280,6 +286,7 @@ public class Index {
         NoRecord r = new NoRecord(id);//inicialmente o id será o campo 0 das informações do registro
         r.setInfo(info);//vetor de informações de um registro
         NoRecord aux;
+        insertions++;
         int posR = (int) hashRegister(id, TSize);
         if (records[posR] == null) {
             records[posR] = r;
@@ -318,5 +325,72 @@ public class Index {
             System.out.println("pkey é null!!!");
         }
         return pkey;
+    }
+
+    public void searchAllRegister(String file) throws IOException {
+        String text = new String(Files.readAllBytes(Paths.get(file)), StandardCharsets.UTF_8);
+        String[] lines = text.split("\n");
+        long tempoInicial = System.currentTimeMillis();
+        for (String line : lines) {
+            searchRegister(line.split("\t")[0], line.split("\t")[1]);
+        }
+        System.out.println("Tempo para busca de todos os registros: " + (System.currentTimeMillis() - tempoInicial));
+    }
+
+    private void searchRegister(String nameTable, String id) {
+        int posT = (int) hashTable(nameTable);
+        NoTable t;
+        NoRecord r;
+        if (this.tables[posT].getName().equals(nameTable)) {
+            int posR = (int) hashRegister(id, this.tables[posT].getElements().length);
+            if (this.tables[posT].getElements()[posR].getId().equals(id)) {
+                for (int i = 0; i < this.tables[posT].getElements()[posR].getInfo().length; i++) {
+                    //System.out.print(this.tables[posT].getElements()[posR].getInfo()[i] + " ");
+                }
+                //System.out.println("");
+            } else {
+                r = this.tables[posT].getElements()[posR].getNext();
+                while (!r.getId().equals(id) && r != null) {
+                    r = r.getNext();
+                }
+                if (r.getId().equals(id)) {
+                    for (int i = 0; i < r.getInfo().length; i++) {
+                        //System.out.print(r.getInfo()[i] + " ");
+                    }
+                    //System.out.println("");
+                } else {
+                    //System.out.println("REGISTRO NÃO ENCONTRADO!");
+                }
+            }
+        } else {
+            t = this.tables[posT].getNext();
+            while (!t.getName().equals(nameTable) && t != null) {
+                t = t.getNext();
+            }
+            if (t.getName().equals(nameTable)) {
+                int posR = (int) hashRegister(id, t.getElements().length);
+                if (t.getElements()[posR].getId().equals(id)) {
+                    for (int i = 0; i < t.getElements()[posR].getInfo().length; i++) {
+                        //System.out.print(t.getElements()[posR].getInfo()[i] + " ");
+                    }
+                    //System.out.println("");
+                } else {
+                    r = t.getElements()[posR].getNext();
+                    while (!r.getId().equals(id) && r != null) {
+                        r = r.getNext();
+                    }
+                    if (r.getId().equals(id)) {
+                        for (int i = 0; i < r.getInfo().length; i++) {
+                            //System.out.print(r.getInfo()[i] + " ");
+                        }
+                        //System.out.println("");
+                    } else {
+                        //System.out.println("REGISTRO NÃO ENCONTRADO!");
+                    }
+                }
+            } else {
+                //System.out.println("TABELA NÃO ENCONTRADA!");
+            }
+        }
     }
 }
