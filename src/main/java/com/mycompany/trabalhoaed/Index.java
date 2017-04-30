@@ -124,7 +124,6 @@ public class Index {
                     }
                 }
             }
-
         }
         return null;
     }
@@ -168,36 +167,87 @@ public class Index {
         }
     }
 
-    private int hashTable(String str) {
+    private long hashTable(String str) {
+        long n = this.nroTables;
+        double A = 0.61803399;
+        long hash = 0;
+        long x = 0;
 
-        double result = 0;
-        char[] letras = str.toCharArray();
-        for (int j = 0; j < letras.length; j++) {
-            result = (int) (result) + ((int) letras[j]);
+        for (int i = 0; i < str.length(); i++) {
+            hash = (hash << 4) + str.charAt(i);
+
+            if ((x = hash & 0xF0000000L) != 0) {
+                hash ^= (x >> 24);
+            }
+            hash &= ~x;
         }
-        return (int) result % this.nroTables;
+        return (long) (n * ((hash * A) - (long) (hash * A)));
     }
 
-    private int hashRegister(String str, int n, int t) {
+    private long hashRegister(String str, long n) {
+        double A = 0.61803399;
+        long BitsInUnsignedInt = (long) (4 * 8);
+        long ThreeQuarters = (long) ((BitsInUnsignedInt * 3) / 4);
+        long OneEighth = (long) (BitsInUnsignedInt / 8);
+        long HighBits = (long) (0xFFFFFFFF) << (BitsInUnsignedInt - OneEighth);
+        long hash = 0;
+        long test = 0;
+
+        for (int i = 0; i < str.length(); i++) {
+            hash = (hash << OneEighth) + str.charAt(i);
+
+            if ((test = hash & HighBits) != 0) {
+                hash = ((hash ^ (test >> ThreeQuarters)) & (~HighBits));
+            }
+        }
+        return (long) (n * ((hash * A) - (long) (hash * A)));
+    }
+
+    private long hashRegisterPJW(String str, int n) {
+        double A = 0.61803399;
+        long BitsInUnsignedInt = (long) (4 * 8);
+        long ThreeQuarters = (long) ((BitsInUnsignedInt * 3) / 4);
+        long OneEighth = (long) (BitsInUnsignedInt / 8);
+        long HighBits = (long) (0xFFFFFFFF) << (BitsInUnsignedInt - OneEighth);
+        long hash = 0;
+        long test = 0;
+
+        for (int i = 0; i < str.length(); i++) {
+            hash = (hash << OneEighth) + str.charAt(i);
+
+            if ((test = hash & HighBits) != 0) {
+                hash = ((hash ^ (test >> ThreeQuarters)) & (~HighBits));
+            }
+        }
+        return (long) (n * ((hash * A) - (long) (hash * A)));
+    }
+
+    private long hashRegisterELF(String str, int n) {
+        double A = 0.61803399;
+        long hash = 0;
+        long x = 0;
+
+        for (int i = 0; i < str.length(); i++) {
+            hash = (hash << 4) + str.charAt(i);
+
+            if ((x = hash & 0xF0000000L) != 0) {
+                hash ^= (x >> 24);
+            }
+            hash &= ~x;
+        }
+        return (long) (n * ((hash * A) - (long) (hash * A)));
+    }
+    
+    private long firstHashRegister(String str, int n) {
 
         long result = 0;
         char[] letras = str.toCharArray();
         for (int j = 0; j < letras.length; j++) {
             result = (long) (5 * result) + ((long) letras[j]);
         }
-        return (int) result % n;
+        return (long) result % n;
     }
-
-    private long hashRegister(String str, int n) {
-        long h = 1125899906842597L; // prime
-        int len = str.length();
-
-        for (int i = 0; i < len; i++) {
-            h = 31 * h + str.charAt(i);
-        }
-        return h % n;
-    }
-
+    
     private Boolean isPrime(int n) {
         int cont = 0;
         int r = (int) Math.sqrt(n);
@@ -213,7 +263,7 @@ public class Index {
         t = new NoTable(name);
         t.setFilds(filds);//armazena o nome dos campos em um vetor de string na tabela t criada
         //hashing para tabela
-        int posT = hashTable(t.getName());
+        int posT = (int)hashTable(t.getName());
         if (this.tables[posT] == null) {
             this.tables[posT] = t;
         } else {
