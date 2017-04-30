@@ -19,9 +19,9 @@ import java.nio.file.Paths;
  */
 public class Index {
 
-    private String path;
+    private static String path;
     private NoTable[] tables;
-    private int nroTables;
+    private static int nroTables;
     private int colisoesT = 0, colisoesR = 0;
     private int insertions = 0;
 
@@ -34,9 +34,8 @@ public class Index {
     void ReadDump() throws IOException {
         int j = 0, TSize;
         //BufferedWriter buffWrite = new BufferedWriter(new FileWriter("search.txt"));
-        String nameTable, aux, text, id = "";
-        int posT = 0, posR = 0;
-        String[] filds, tab, info, line;
+        String nameTable,text, id = "";
+        String[] filds, info, line;
         NoTable t = null;
         NoRecord[] records;
 
@@ -65,17 +64,18 @@ public class Index {
             } else if (line[i].contains("COPY ")) {//estou na lista de elementos de uma tabela
                 nameTable = line[i].split(" ")[1];//nome da tabela que se trata os elementos
                 t = getTable(nameTable);//retorna o NoTable com aquele nome ps: a função getTable será com hashing
-                //System.out.println(nameTable);
+                System.out.println(nameTable);
                 i++;
                 j = i;
-                String[] keys = searchPkey(nameTable);
-                int[] pkeys = t.getPosPkey(keys);
+                
                 while (!line[j].equals("\\.")) {
                     j++;
                 }
+                String[] keys = searchPkey(nameTable,line, j);
+                int[] pkeys = t.getPosPkey(keys);
                 t.setNroElements(j - i);//numero de elementos daquela tabela
-                //System.out.println("quantidade de registros: " + (j - i));
-                TSize = ((j - i) * 7) / 5;
+                System.out.println("quantidade de registros: " + (j - i));
+                TSize = ((j - i) * 5) / 4;
                 records = new NoRecord[TSize];//vetor de registros instanciado com a quantidade de elementos
                 while (!line[i].equals("\\.")) {
                     line[i] = line[i].replace("\t", "\t ");
@@ -90,10 +90,10 @@ public class Index {
                     info = null;
                 }
                 t.setElements(records);
-//                System.out.println("colisões de tabelas :" + colisoesT);
-//                System.out.println("colisões de registros :" + colisoesR);
-//                System.out.println("");
-//                colisoesR = 0;
+                System.out.println("colisões de tabelas :" + colisoesT);
+                System.out.println("colisões de registros :" + colisoesR);
+                System.out.println("");
+                colisoesR = 0;
             }
         }
         System.out.println("Tempo para inserção de todos os registros: " + (System.currentTimeMillis() - tempoInicial));
@@ -301,11 +301,10 @@ public class Index {
         }
     }
 
-    private String[] searchPkey(String nameTable) throws IOException {
-        String text = new String(Files.readAllBytes(Paths.get(this.path)), StandardCharsets.UTF_8);
+    private String[] searchPkey(String nameTable, String[] line , int min) throws IOException {
         String aux;
-        String[] line = text.split("\n"), pkey = null;
-        for (int i = 0; i < line.length; i++) {
+        String[] pkey = null;
+        for (int i = min; i < line.length; i++) {
             if (line[i].contains("ALTER TABLE ONLY " + nameTable)) {
                 nameTable = line[i].split(" ")[3];
                 i++;
@@ -390,6 +389,73 @@ public class Index {
                 }
             } else {
                 //System.out.println("TABELA NÃO ENCONTRADA!");
+            }
+        }
+    }
+    
+    public void searchAllRegister(String file, Boolean print) throws IOException {
+        String text = new String(Files.readAllBytes(Paths.get(file)), StandardCharsets.UTF_8);
+        String[] lines = text.split("\n");
+        long tempoInicial = System.currentTimeMillis();
+        for (String line : lines) {
+            searchRegister(line.split("\t")[0], line.split("\t")[1],print);
+        }
+        System.out.println("Tempo para busca de todos os registros: " + (System.currentTimeMillis() - tempoInicial));
+    }
+
+    private void searchRegister(String nameTable, String id, Boolean print) {
+        int posT = (int) hashTable(nameTable);
+        NoTable t;
+        NoRecord r;
+        if (this.tables[posT].getName().equals(nameTable)) {
+            int posR = (int) hashRegister(id, this.tables[posT].getElements().length);
+            if (this.tables[posT].getElements()[posR].getId().equals(id)) {
+                for (int i = 0; i < this.tables[posT].getElements()[posR].getInfo().length; i++) {
+                    System.out.print(this.tables[posT].getElements()[posR].getInfo()[i] + " ");
+                }
+                System.out.println("");
+            } else {
+                r = this.tables[posT].getElements()[posR].getNext();
+                while (!r.getId().equals(id) && r != null) {
+                    r = r.getNext();
+                }
+                if (r.getId().equals(id)) {
+                    for (int i = 0; i < r.getInfo().length; i++) {
+                        System.out.print(r.getInfo()[i] + " ");
+                    }
+                    System.out.println("");
+                } else {
+                    System.out.println("REGISTRO NÃO ENCONTRADO!");
+                }
+            }
+        } else {
+            t = this.tables[posT].getNext();
+            while (!t.getName().equals(nameTable) && t != null) {
+                t = t.getNext();
+            }
+            if (t.getName().equals(nameTable)) {
+                int posR = (int) hashRegister(id, t.getElements().length);
+                if (t.getElements()[posR].getId().equals(id)) {
+                    for (int i = 0; i < t.getElements()[posR].getInfo().length; i++) {
+                        System.out.print(t.getElements()[posR].getInfo()[i] + " ");
+                    }
+                    System.out.println("");
+                } else {
+                    r = t.getElements()[posR].getNext();
+                    while (!r.getId().equals(id) && r != null) {
+                        r = r.getNext();
+                    }
+                    if (r.getId().equals(id)) {
+                        for (int i = 0; i < r.getInfo().length; i++) {
+                            System.out.print(r.getInfo()[i] + " ");
+                        }
+                        System.out.println("");
+                    } else {
+                        System.out.println("REGISTRO NÃO ENCONTRADO!");
+                    }
+                }
+            } else {
+                System.out.println("TABELA NÃO ENCONTRADA!");
             }
         }
     }
