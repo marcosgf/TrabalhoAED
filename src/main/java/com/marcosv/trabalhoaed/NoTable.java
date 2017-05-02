@@ -1,4 +1,4 @@
-package com.mycompany.trabalhoaed;
+package com.marcosv.trabalhoaed;
 
 /*
  * To change this license header, choose License Headers in Project Properties.
@@ -106,5 +106,20 @@ public class NoTable {
             }
         }
         return pos;
+    }
+    
+    public void printStruct(){
+        System.out.println(this.name + " tamanho = "+this.elements.length);
+        for(int i = 0 ; i < this.elements.length ; i++){
+            if(this.elements[i]!=null){
+                System.out.print(".");
+            }
+            else{
+                System.out.print(" ");
+            }
+            if((i+1) % 150 == 0){
+                System.out.println("");
+            }
+        }
     }
 }

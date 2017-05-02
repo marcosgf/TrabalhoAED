@@ -1,6 +1,5 @@
-package com.mycompany.trabalhoaed;
+package com.marcosv.trabalhoaed;
 
-import com.mycompany.trabalhoaed.Index;
 import java.io.IOException;
 import java.util.Scanner;
 
@@ -22,8 +21,11 @@ public class Main {
         // TODO code application logic here
         int tam = 0;
         String file = "";
-        Index database;
-
+        Database database;
+        System.out.println("Trabalho de implementação para a disciplina de Algoritimos de Estrutura de Dados - PGCC-UFJF");
+        System.out.println("Aluno: Marcos Valadão G. Ferreira");
+        System.out.println("Professor: Jairo F. de Souza");
+        System.out.println("--------------------------------");
         Scanner in = new Scanner(System.in);
         System.out.print("Digite o caminho do arquivo a ser indexado (default = usda.sql) :");
         file = in.nextLine();
@@ -32,17 +34,18 @@ public class Main {
         tam = in.nextInt();
         System.out.println("");
         if (file.equals("") && tam == 0) {
-            database = new Index("usda.sql", 13);
+            database = new Database("usda.sql", 13);
             database.ReadDump();
         } else {
-            database = new Index(file, tam);
+            database = new Database(file, tam);
             database.ReadDump();
         }
         while (true) {
             System.out.println("1 - Imprimir o banco de dados");
             System.out.println("2 - Buscar todos os Registros (sem impressão)");
             System.out.println("3 - Buscar todos os Registros (com impressão)");
-            System.out.println("4 - Finalizar");
+            System.out.println("4 - Imprimir estrutura para cada tabela");
+            System.out.println("5 - Finalizar");
             int op = in.nextInt();
             switch (op) {
                 case 1:
@@ -54,10 +57,13 @@ public class Main {
                 case 3:
                     database.searchAllRegister("search.txt", true);
                     break;
+                case 4:
+                    database.printStructHash();
+                    break;
                 default:
                     break;
             }
-            if(op == 4)break;
+            if(op == 5)break;
         }
     }
 

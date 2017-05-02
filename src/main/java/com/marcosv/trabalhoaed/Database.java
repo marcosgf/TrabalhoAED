@@ -1,4 +1,4 @@
-package com.mycompany.trabalhoaed;
+package com.marcosv.trabalhoaed;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -17,7 +17,7 @@ import java.nio.file.Paths;
  *
  * @author marcos
  */
-public class Index {
+public class Database {
 
     private static String path;
     private NoTable[] tables;
@@ -25,7 +25,7 @@ public class Index {
     private int colisoesT = 0, colisoesR = 0;
     private int insertions = 0;
 
-    public Index(String path, int nroTables) {
+    public Database(String path, int nroTables) {
         this.path = path;
         this.nroTables = nroTables;
         this.tables = new NoTable[this.nroTables];
@@ -33,7 +33,7 @@ public class Index {
 
     void ReadDump() throws IOException {
         int j = 0, TSize;
-        //BufferedWriter buffWrite = new BufferedWriter(new FileWriter("search.txt"));
+        BufferedWriter buffWrite = new BufferedWriter(new FileWriter("search.txt"));
         String nameTable,text, id = "";
         String[] filds, info, line;
         NoTable t = null;
@@ -64,7 +64,7 @@ public class Index {
             } else if (line[i].contains("COPY ")) {//estou na lista de elementos de uma tabela
                 nameTable = line[i].split(" ")[1];//nome da tabela que se trata os elementos
                 t = getTable(nameTable);//retorna o NoTable com aquele nome ps: a função getTable será com hashing
-                System.out.println(nameTable);
+                //System.out.println(nameTable);
                 i++;
                 j = i;
                 
@@ -74,7 +74,7 @@ public class Index {
                 String[] keys = searchPkey(nameTable,line, j);
                 int[] pkeys = t.getPosPkey(keys);
                 t.setNroElements(j - i);//numero de elementos daquela tabela
-                System.out.println("quantidade de registros: " + (j - i));
+                //System.out.println("quantidade de registros: " + (j - i));
                 TSize = ((j - i) * 5) / 4;
                 records = new NoRecord[TSize];//vetor de registros instanciado com a quantidade de elementos
                 while (!line[i].equals("\\.")) {
@@ -83,22 +83,23 @@ public class Index {
                     for (int k = 0; k < pkeys.length; k++) {
                         id += info[pkeys[k]].trim();
                     }
-                    //buffWrite.append(nameTable + "\t" + id.trim() + "\n");
+                    buffWrite.append(nameTable + "\t" + id.trim() + "\n");
                     insertRegister(info, id.trim(), TSize, records);
                     i++;
                     id = "";
                     info = null;
                 }
                 t.setElements(records);
-                System.out.println("colisões de tabelas :" + colisoesT);
-                System.out.println("colisões de registros :" + colisoesR);
-                System.out.println("");
+//                System.out.println("colisões de tabelas :" + colisoesT);
+//                System.out.println("colisões de registros :" + colisoesR);
+//                System.out.println("");
                 colisoesR = 0;
             }
         }
-        System.out.println("Tempo para inserção de todos os registros: " + (System.currentTimeMillis() - tempoInicial));
+        
+        //System.out.println("Tempo para inserção de todos os registros: " + (System.currentTimeMillis() - tempoInicial));
         //System.out.println("Quantidade de registros inseridos: "+insertions);
-        //buffWrite.close();
+        buffWrite.close();
     }
 
     /**
@@ -115,6 +116,15 @@ public class Index {
         this.tables = tables;
     }
 
+    public void printStructHash(){
+        for(NoTable tt : tables){
+            if(tt != null){
+                tt.printStruct();
+                System.out.println("");
+            }
+        }
+    }
+    
     public NoTable getTable(String name) {
         for (int i = 0; i < this.tables.length; i++) {
             if (this.tables[i] != null) {
