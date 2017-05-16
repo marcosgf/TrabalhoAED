@@ -117,7 +117,7 @@ public class NoTable {
             else{
                 System.out.print(" ");
             }
-            if((i+1) % 150 == 0){
+            if((i+1) % 200 == 0){
                 System.out.println("");
             }
         }

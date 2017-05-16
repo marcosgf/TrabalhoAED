@@ -19,92 +19,21 @@ import java.nio.file.Paths;
  */
 public class Database {
 
-    private static String path;
     private NoTable[] tables;
     private static int nroTables;
-    private int colisoesT = 0, colisoesR = 0;
-    private int insertions = 0;
+    private int insertions = 0, colisoesT = 0, colisoesR = 0;
 
-    public Database(String path, int nroTables) {
-        this.path = path;
+    public Database(int nroTables) {
         this.nroTables = nroTables;
         this.tables = new NoTable[this.nroTables];
-    }
-
-    void ReadDump() throws IOException {
-        int j = 0, TSize;
-        BufferedWriter buffWrite = new BufferedWriter(new FileWriter("search.txt"));
-        String nameTable,text, id = "";
-        String[] filds, info, line;
-        NoTable t = null;
-        NoRecord[] records;
-
-        text = new String(Files.readAllBytes(Paths.get(this.path)), StandardCharsets.UTF_8);
-        line = text.split("\n");
-        long tempoInicial = System.currentTimeMillis();
-        for (int i = 0; i < line.length; i++) {
-            if (line[i].contains("CREATE TABLE ")) {//estamos em uma tabela
-                nameTable = line[i].replace("CREATE TABLE ", "");
-                nameTable = nameTable.replace(" (", "");
-                //novo nó tabela com nome lido 
-                i++;
-                j = i;
-                while (!line[j].equals(");")) {
-                    j++;
-                }
-                filds = new String[j - i];
-                j = 0; // quantidade de campos na tabela
-                while (!line[i].equals(");")) {//leitura de todos os campos em um vetor de string
-                    filds[j] = line[i].split(" ")[4];
-                    i++;
-                    j++;
-                }
-                insertTable(nameTable, filds, t);
-
-            } else if (line[i].contains("COPY ")) {//estou na lista de elementos de uma tabela
-                nameTable = line[i].split(" ")[1];//nome da tabela que se trata os elementos
-                t = getTable(nameTable);//retorna o NoTable com aquele nome ps: a função getTable será com hashing
-                //System.out.println(nameTable);
-                i++;
-                j = i;
-                
-                while (!line[j].equals("\\.")) {
-                    j++;
-                }
-                String[] keys = searchPkey(nameTable,line, j);
-                int[] pkeys = t.getPosPkey(keys);
-                t.setNroElements(j - i);//numero de elementos daquela tabela
-                //System.out.println("quantidade de registros: " + (j - i));
-                TSize = ((j - i) * 5) / 4;
-                records = new NoRecord[TSize];//vetor de registros instanciado com a quantidade de elementos
-                while (!line[i].equals("\\.")) {
-                    line[i] = line[i].replace("\t", "\t ");
-                    info = line[i].split("\t");//separa campos do registro
-                    for (int k = 0; k < pkeys.length; k++) {
-                        id += info[pkeys[k]].trim();
-                    }
-                    buffWrite.append(nameTable + "\t" + id.trim() + "\n");
-                    insertRegister(info, id.trim(), TSize, records);
-                    i++;
-                    id = "";
-                    info = null;
-                }
-                t.setElements(records);
-//                System.out.println("colisões de tabelas :" + colisoesT);
-//                System.out.println("colisões de registros :" + colisoesR);
-//                System.out.println("");
-                colisoesR = 0;
-            }
-        }
-        
-        //System.out.println("Tempo para inserção de todos os registros: " + (System.currentTimeMillis() - tempoInicial));
-        //System.out.println("Quantidade de registros inseridos: "+insertions);
-        buffWrite.close();
     }
 
     /**
      * @return the tables
      */
+    
+    
+    
     public NoTable[] getAllTables() {
         return tables;
     }
@@ -183,7 +112,7 @@ public class Database {
         }
     }
 
-    private long hashTable(String str) {
+    public long hashTable(String str) {
         long n = this.nroTables;
         double A = 0.61803399;
         long hash = 0;
@@ -200,7 +129,7 @@ public class Database {
         return (long) (n * ((hash * A) - (long) (hash * A)));
     }
 
-    private long hashRegister(String str, long n) {
+    public long hashRegister(String str, long n) {
         double A = 0.61803399;
         long BitsInUnsignedInt = (long) (4 * 8);
         long ThreeQuarters = (long) ((BitsInUnsignedInt * 3) / 4);
@@ -219,63 +148,7 @@ public class Database {
         return (long) (n * ((hash * A) - (long) (hash * A)));
     }
 
-    private long hashRegisterPJW(String str, int n) {
-        double A = 0.61803399;
-        long BitsInUnsignedInt = (long) (4 * 8);
-        long ThreeQuarters = (long) ((BitsInUnsignedInt * 3) / 4);
-        long OneEighth = (long) (BitsInUnsignedInt / 8);
-        long HighBits = (long) (0xFFFFFFFF) << (BitsInUnsignedInt - OneEighth);
-        long hash = 0;
-        long test = 0;
-
-        for (int i = 0; i < str.length(); i++) {
-            hash = (hash << OneEighth) + str.charAt(i);
-
-            if ((test = hash & HighBits) != 0) {
-                hash = ((hash ^ (test >> ThreeQuarters)) & (~HighBits));
-            }
-        }
-        return (long) (n * ((hash * A) - (long) (hash * A)));
-    }
-
-    private long hashRegisterELF(String str, int n) {
-        double A = 0.61803399;
-        long hash = 0;
-        long x = 0;
-
-        for (int i = 0; i < str.length(); i++) {
-            hash = (hash << 4) + str.charAt(i);
-
-            if ((x = hash & 0xF0000000L) != 0) {
-                hash ^= (x >> 24);
-            }
-            hash &= ~x;
-        }
-        return (long) (n * ((hash * A) - (long) (hash * A)));
-    }
-
-    private long firstHashRegister(String str, int n) {
-
-        long result = 0;
-        char[] letras = str.toCharArray();
-        for (int j = 0; j < letras.length; j++) {
-            result = (long) (5 * result) + ((long) letras[j]);
-        }
-        return (long) result % n;
-    }
-
-    private Boolean isPrime(int n) {
-        int cont = 0;
-        int r = (int) Math.sqrt(n);
-        for (int i = 2; i <= r; i++) {
-            if (n % i == 0) {
-                return false;
-            }
-        }
-        return true;
-    }
-
-    private void insertTable(String name, String[] filds, NoTable t) {
+    public void insertTable(String name, String[] filds, NoTable t) {
         t = new NoTable(name);
         t.setFilds(filds);//armazena o nome dos campos em um vetor de string na tabela t criada
         //hashing para tabela
@@ -287,12 +160,12 @@ public class Database {
             while (aux.getNext() != null) {
                 aux = aux.getNext();
             }
-            colisoesT++;
+            setColisoesT(getColisoesT() + 1);
             aux.setNext(t);
         }
     }
 
-    private void insertRegister(String[] info, String id, int TSize, NoRecord[] records) {
+    public void insertRegister(String[] info, String id, int TSize, NoRecord[] records) {
         NoRecord r = new NoRecord(id);//inicialmente o id será o campo 0 das informações do registro
         r.setInfo(info);//vetor de informações de um registro
         NoRecord aux;
@@ -311,7 +184,7 @@ public class Database {
         }
     }
 
-    private String[] searchPkey(String nameTable, String[] line , int min) throws IOException {
+    public String[] searchPkey(String nameTable, String[] line , int min) throws IOException {
         String aux;
         String[] pkey = null;
         for (int i = min; i < line.length; i++) {
@@ -346,7 +219,7 @@ public class Database {
         System.out.println("Tempo para busca de todos os registros: " + (System.currentTimeMillis() - tempoInicial));
     }
 
-    private void searchRegister(String nameTable, String id) {
+    public void searchRegister(String nameTable, String id) {
         int posT = (int) hashTable(nameTable);
         NoTable t;
         NoRecord r;
@@ -368,7 +241,7 @@ public class Database {
                     }
                     //System.out.println("");
                 } else {
-                    //System.out.println("REGISTRO NÃO ENCONTRADO!");
+                    System.out.println("REGISTRO NÃO ENCONTRADO!");
                 }
             }
         } else {
@@ -394,11 +267,11 @@ public class Database {
                         }
                         //System.out.println("");
                     } else {
-                        //System.out.println("REGISTRO NÃO ENCONTRADO!");
+                        System.out.println("REGISTRO NÃO ENCONTRADO!");
                     }
                 }
             } else {
-                //System.out.println("TABELA NÃO ENCONTRADA!");
+                System.out.println("TABELA NÃO ENCONTRADA!");
             }
         }
     }
@@ -413,7 +286,7 @@ public class Database {
         System.out.println("Tempo para busca de todos os registros: " + (System.currentTimeMillis() - tempoInicial));
     }
 
-    private void searchRegister(String nameTable, String id, Boolean print) {
+    public void searchRegister(String nameTable, String id, Boolean print) {
         int posT = (int) hashTable(nameTable);
         NoTable t;
         NoRecord r;
@@ -468,5 +341,40 @@ public class Database {
                 System.out.println("TABELA NÃO ENCONTRADA!");
             }
         }
+    }
+
+    /**
+     * @return the insertions
+     */
+    public int getInsertions() {
+        return insertions;
+    }
+
+    /**
+     * @return the colisoesT
+     */
+    public int getColisoesT() {
+        return colisoesT;
+    }
+
+    /**
+     * @return the colisoesR
+     */
+    public int getColisoesR() {
+        return colisoesR;
+    }
+
+    /**
+     * @param colisoesT the colisoesT to set
+     */
+    public void setColisoesT(int colisoesT) {
+        this.colisoesT = colisoesT;
+    }
+
+    /**
+     * @param colisoesR the colisoesR to set
+     */
+    public void setColisoesR(int colisoesR) {
+        this.colisoesR = colisoesR;
     }
 }
