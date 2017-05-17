@@ -1,8 +1,5 @@
 package com.marcosv.trabalhoaed;
 
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -28,12 +25,108 @@ public class Database {
         this.tables = new NoTable[this.nroTables];
     }
 
-    /**
-     * @return the tables
-     */
     
-    
-    
+    public void innerJoin(String nameTable1, String nameTable2, String[] keys) {
+        Boolean aux = false, found = false;
+        int cont = 0;
+        NoRecord auxR1, auxR2;
+        NoTable tb1 = getTable(nameTable1);
+        NoTable tb2 = getTable(nameTable2);
+        int[] ind1 = new int[keys.length];
+        int[] ind2 = new int[keys.length];
+        for (int i = 0; i < keys.length; i++) {
+            ind1[i] = tb1.getIndexFild(keys[i]);
+            ind2[i] = tb2.getIndexFild(keys[i]);
+        }
+        for (int i = 0; i < tb1.getElements().length; i++) {
+            if (tb1.getElements()[i] != null) {
+                for (int j = 0; j < tb2.getElements().length; j++) {
+                    if (tb2.getElements()[j] != null) {
+                        for (int k = 0; k < keys.length; k++) {
+                            if (tb1.getElements()[i].getInfo()[ind1[k]].trim().equals(tb2.getElements()[j].getInfo()[ind2[k]].trim())) {
+                                aux = true;
+                            } else {
+                                aux = false;
+                                break;
+                            }
+                        }
+                        if (aux) {
+//                            tb1.getElements()[i].printInfo();
+//                            tb2.getElements()[j].printInfo();
+                            cont += 2;
+                        } else {
+                            auxR2 = tb2.getElements()[j].getNext();
+                            while (auxR2 != null) {
+                                for (int k = 0; k < keys.length; k++) {
+                                    if (tb1.getElements()[i].getInfo()[ind1[k]].trim().equals(auxR2.getInfo()[ind2[k]].trim())) {
+                                        aux = true;
+                                    } else {
+                                        aux = false;
+                                        break;
+                                    }
+                                }
+                                if (aux) {
+//                                    tb1.getElements()[i].printInfo();
+//                                    auxR2.printInfo();
+                                    cont += 2;
+                                    found = true;
+                                }
+                                auxR2 = auxR2.getNext();
+                            }
+//                            if (found) {
+//                                break;
+//                            }
+                        }
+                    }
+                }
+                auxR1 = tb1.getElements()[i].getNext();
+                while (auxR1 != null) {
+                    for (int j = 0; j < tb2.getElements().length; j++) {
+                        if (tb2.getElements()[j] != null) {
+                            for (int k = 0; k < keys.length; k++) {
+                                if (auxR1.getInfo()[ind1[k]].trim().equals(tb2.getElements()[j].getInfo()[ind2[k]].trim())) {
+                                    aux = true;
+                                } else {
+                                    aux = false;
+                                    break;
+                                }
+                            }
+                            if (aux) {
+                                cont += 2;
+//                                auxR1.printInfo();
+//                                tb2.getElements()[j].printInfo();
+                            } else {
+                                auxR2 = tb2.getElements()[j].getNext();
+                                while (auxR2 != null) {
+                                    for (int k = 0; k < keys.length; k++) {
+                                        if (auxR1.getInfo()[ind1[k]].trim().equals(auxR2.getInfo()[ind2[k]].trim())) {
+                                            aux = true;
+                                        } else {
+                                            aux = false;
+                                            break;
+                                        }
+                                    }
+                                    if (aux) {
+                                        cont += 2;
+//                                        auxR1.printInfo();
+//                                        auxR2.printInfo();
+                                        found = true;
+                                    }
+                                    auxR2 = auxR2.getNext();
+                                }
+//                                if (found) {
+//                                    break;
+//                                }
+                            }
+                        }
+                    }
+                    auxR1 = auxR1.getNext();
+                }
+            }
+        }
+        System.out.println("Tabela de tamanho igual a: " + cont);
+    }
+
     public NoTable[] getAllTables() {
         return tables;
     }
@@ -45,15 +138,15 @@ public class Database {
         this.tables = tables;
     }
 
-    public void printStructHash(){
-        for(NoTable tt : tables){
-            if(tt != null){
+    public void printStructHash() {
+        for (NoTable tt : tables) {
+            if (tt != null) {
                 tt.printStruct();
                 System.out.println("");
             }
         }
     }
-    
+
     public NoTable getTable(String name) {
         for (int i = 0; i < this.tables.length; i++) {
             if (this.tables[i] != null) {
@@ -71,6 +164,63 @@ public class Database {
             }
         }
         return null;
+    }
+
+    public void deleteRegister(String table, String id) {
+        int posT = (int) hashTable(table), i;
+        NoTable auxT = this.tables[posT];
+        while (!auxT.getName().equals(table) && auxT != null) {
+            auxT = auxT.getNext();
+        }
+        if (auxT == null) {
+            System.out.println("Tabela Não Encontrada!");
+        } else {
+            int posR = (int) hashRegister(id, auxT.getElements().length);
+            if (auxT.getElements()[posR].getNext() == null && auxT.getElements()[posR].getId().equals(id)) {
+                auxT.getElements()[posR] = null;
+            } else {
+                if (auxT.getElements()[posR].getId().equals(id)) {
+                    auxT.getElements()[posR] = auxT.getElements()[posR].getNext();
+                } else {
+                    NoRecord auxR = auxT.getElements()[posR], auxA;
+                    while (auxR != null) {
+                        auxA = auxR;
+                        auxR = auxR.getNext();
+                        if (auxR.getId().equals(id)) {
+                            auxA.setNext(auxR.getNext());
+                            auxR = null;
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+    }
+    
+    public void selectCout (String table){
+        int posT = (int) hashTable(table);
+        NoTable auxT = this.tables[posT];
+        while (!auxT.getName().equals(table) && auxT != null) {
+            auxT = auxT.getNext();
+        }
+        if (auxT == null) {
+            System.out.println("Tabela Não Encontrada!");
+        } else {
+            System.out.println(auxT.coutRegisters());
+        }
+    }
+    
+    public void selectCoutWhere(String table, String fild, String value){
+        int posT = (int) hashTable(table);
+        NoTable auxT = this.tables[posT];
+        while (!auxT.getName().equals(table) && auxT != null) {
+            auxT = auxT.getNext();
+        }
+        if (auxT == null) {
+            System.out.println("Tabela Não Encontrada!");
+        } else {
+            System.out.println(auxT.coutRegisters(fild,value));
+        }
     }
 
     public void PrintStruct() {
@@ -184,31 +334,6 @@ public class Database {
         }
     }
 
-    public String[] searchPkey(String nameTable, String[] line , int min) throws IOException {
-        String aux;
-        String[] pkey = null;
-        for (int i = min; i < line.length; i++) {
-            if (line[i].contains("ALTER TABLE ONLY " + nameTable)) {
-                nameTable = line[i].split(" ")[3];
-                i++;
-                aux = line[i].replace("(", "\t");
-                aux = aux.replace(")", "\t");
-                aux = aux.split("\t")[1];
-                if (line[i].contains(", ")) {
-                    pkey = aux.split(", ");
-                } else {
-                    pkey = new String[1];
-                    pkey[0] = aux;
-                }
-                break;
-            }
-        }
-        if (pkey == null) {
-            System.out.println("pkey é null!!!");
-        }
-        return pkey;
-    }
-
     public void searchAllRegister(String file) throws IOException {
         String text = new String(Files.readAllBytes(Paths.get(file)), StandardCharsets.UTF_8);
         String[] lines = text.split("\n");
@@ -275,13 +400,13 @@ public class Database {
             }
         }
     }
-    
+
     public void searchAllRegister(String file, Boolean print) throws IOException {
         String text = new String(Files.readAllBytes(Paths.get(file)), StandardCharsets.UTF_8);
         String[] lines = text.split("\n");
         long tempoInicial = System.currentTimeMillis();
         for (String line : lines) {
-            searchRegister(line.split("\t")[0], line.split("\t")[1],print);
+            searchRegister(line.split("\t")[0], line.split("\t")[1], print);
         }
         System.out.println("Tempo para busca de todos os registros: " + (System.currentTimeMillis() - tempoInicial));
     }
@@ -299,14 +424,19 @@ public class Database {
                 System.out.println("");
             } else {
                 r = this.tables[posT].getElements()[posR].getNext();
-                while (!r.getId().equals(id) && r != null) {
+                while (!r.getId().equals(id) || r == null) {
                     r = r.getNext();
-                }
-                if (r.getId().equals(id)) {
-                    for (int i = 0; i < r.getInfo().length; i++) {
-                        System.out.print(r.getInfo()[i] + " ");
+                    if (r == null) {
+                        break;
                     }
-                    System.out.println("");
+                }
+                if (r != null) {
+                    if (r.getId().equals(id)) {
+                        for (int i = 0; i < r.getInfo().length; i++) {
+                            System.out.print(r.getInfo()[i] + " ");
+                        }
+                        System.out.println("");
+                    }
                 } else {
                     System.out.println("REGISTRO NÃO ENCONTRADO!");
                 }
@@ -325,14 +455,19 @@ public class Database {
                     System.out.println("");
                 } else {
                     r = t.getElements()[posR].getNext();
-                    while (!r.getId().equals(id) && r != null) {
+                    while (!r.getId().equals(id) || r == null) {
                         r = r.getNext();
-                    }
-                    if (r.getId().equals(id)) {
-                        for (int i = 0; i < r.getInfo().length; i++) {
-                            System.out.print(r.getInfo()[i] + " ");
+                        if (r == null) {
+                            break;
                         }
-                        System.out.println("");
+                    }
+                    if (r != null) {
+                        if (r.getId().equals(id)) {
+                            for (int i = 0; i < r.getInfo().length; i++) {
+                                System.out.print(r.getInfo()[i] + " ");
+                            }
+                            System.out.println("");
+                        }
                     } else {
                         System.out.println("REGISTRO NÃO ENCONTRADO!");
                     }

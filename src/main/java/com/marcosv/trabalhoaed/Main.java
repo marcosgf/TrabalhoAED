@@ -19,7 +19,6 @@ import java.util.Scanner;
  */
 public class Main {
 
-    
     /**
      * @param args the command line arguments
      */
@@ -27,6 +26,7 @@ public class Main {
         // TODO code application logic here
         int tam = 0;
         String file = "";
+        String table, id, fild, value;
         Database database;
         System.out.println("Trabalho de implementação para a disciplina de Algoritimos de Estrutura de Dados - PGCC-UFJF");
         System.out.println("Aluno: Marcos Valadão G. Ferreira");
@@ -41,17 +41,26 @@ public class Main {
         System.out.println("");
         if (file.equals("") && tam == 0) {
             database = new Database(13);
-            ReadDump(database,"usda.sql");
+            ReadDump(database, "usda.sql");
         } else {
             database = new Database(tam);
-            ReadDump(database,file);
+            ReadDump(database, file);
         }
+//        String[] filds = {"ndb_no"};
+//        database.innerJoin("nut_data", "datsrcln", filds);
         while (true) {
             System.out.println("1 - Imprimir o banco de dados");
             System.out.println("2 - Buscar todos os Registros (sem impressão)");
             System.out.println("3 - Buscar todos os Registros (com impressão)");
             System.out.println("4 - Imprimir estrutura para cada tabela");
-            System.out.println("5 - Finalizar");
+            System.out.println("5 - Buscar por um registro passando tabela e identificador");
+            System.out.println("6 - Excluir um registro passando tabela e identificador");
+            System.out.println("7 - SELECT COUNT(*) FROM ...");
+            System.out.println("8 - SELECT COUNT(*) FROM ... WHERE ... = ...");
+            System.out.println("9 - INNER JOIN ");
+            System.out.println("10 - LEFT OUTER JOIN ");
+            System.out.println("11 - RIGHT OUTER JOIN ");
+            System.out.println("0 - Finalizar");
             int op = in.nextInt();
             switch (op) {
                 case 1:
@@ -66,17 +75,47 @@ public class Main {
                 case 4:
                     database.printStructHash();
                     break;
+                case 5:
+                    System.out.println("Digite o nome da tabela:");
+                    table = in.next();
+                    System.out.println("Digite o indentificador do registro:");
+                    id = in.next();
+                    database.searchRegister(table, id, Boolean.TRUE);
+                    break;
+                case 6:
+                    System.out.println("Digite o nome da tabela:");
+                    table = in.next();
+                    System.out.println("Digite o indentificador do registro que deseja excluir:");
+                    id = in.next();
+                    database.deleteRegister(table, id);
+                    break;
+                case 7:
+                    System.out.println("Digite o nome da tabela:");
+                    table = in.next();
+                    database.selectCout(table);
+                    break;
+                case 8:
+                    System.out.println("Digite o nome da tabela:");
+                    table = in.next();
+                    System.out.println("Digite o nome do campo:");
+                    fild = in.next();
+                    System.out.println("Digite o valor do campo:");
+                    value = in.next();
+                    database.selectCoutWhere(table,fild,value);
+                    break;
                 default:
                     break;
             }
-            if(op == 5)break;
+            if (op == 0) {
+                break;
+            }
         }
     }
-    
+
     static void ReadDump(Database database, String path) throws IOException {
         int j = 0, TSize;
         //BufferedWriter buffWrite = new BufferedWriter(new FileWriter("search.txt"));
-        String nameTable,text, id = "";
+        String nameTable, text, id = "";
         String[] filds, info, line;
         NoTable t = null;
         NoRecord[] records;
@@ -109,11 +148,11 @@ public class Main {
                 System.out.println(nameTable);
                 i++;
                 j = i;
-                
+
                 while (!line[j].equals("\\.")) {
                     j++;
                 }
-                String[] keys = database.searchPkey(nameTable,line, j);
+                String[] keys = searchPkey(nameTable, line, j);
                 int[] pkeys = t.getPosPkey(keys);
                 t.setNroElements(j - i);//numero de elementos daquela tabela
                 System.out.println("quantidade de registros: " + (j - i));
@@ -138,10 +177,35 @@ public class Main {
                 database.setColisoesR(0);
             }
         }
-        
+
         System.out.println("Tempo para inserção de todos os registros: " + (System.currentTimeMillis() - tempoInicial));
         text = null;
         System.gc();
         //buffWrite.close();
+    }
+
+    public static String[] searchPkey(String nameTable, String[] line, int min) throws IOException {
+        String aux;
+        String[] pkey = null;
+        for (int i = min; i < line.length; i++) {
+            if (line[i].contains("ALTER TABLE ONLY " + nameTable)) {
+                nameTable = line[i].split(" ")[3];
+                i++;
+                aux = line[i].replace("(", "\t");
+                aux = aux.replace(")", "\t");
+                aux = aux.split("\t")[1];
+                if (line[i].contains(", ")) {
+                    pkey = aux.split(", ");
+                } else {
+                    pkey = new String[1];
+                    pkey[0] = aux;
+                }
+                break;
+            }
+        }
+        if (pkey == null) {
+            System.out.println("pkey é null!!!");
+        }
+        return pkey;
     }
 }

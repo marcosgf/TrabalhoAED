@@ -14,6 +14,7 @@ public class NoTable {
     private String name;
     private int nroElements;
     private String[] filds;
+    private String[] fildsPKey;
     private NoTable next ;
     private NoTable last;
     private NoRecord[] elements;
@@ -24,6 +25,7 @@ public class NoTable {
         this.next = null;
         this.last =null;
     }
+    
     /**
      * @return the name
      */
@@ -96,10 +98,12 @@ public class NoTable {
     
     public int[] getPosPkey(String[] pkey){
         int[] pos = new int[pkey.length];
+        this.fildsPKey = new String[pkey.length];
         int j =0;
         for(String key: pkey){
             for(int i = 0 ; i < this.filds.length ; i ++){
                 if(key.equals(this.filds[i])){
+                    this.fildsPKey[j] = this.filds[i];
                     pos[j] = i;
                     j++;
                 }
@@ -121,5 +125,56 @@ public class NoTable {
                 System.out.println("");
             }
         }
+    }
+    
+    public int getIndexFild(String fild){
+        for(int i = 0 ; i < filds.length ; i++){
+            if(filds[i].equals(fild))
+                return i;
+        }
+        return 0;
+    }
+    
+    public int coutRegisters(){
+        int cont = 0 ;
+        NoRecord aux;
+        for(int i = 0 ; i < this.elements.length ; i++){
+            if(this.elements[i]!=null){
+                cont++;
+                aux = this.elements[i].getNext();
+                while(aux != null){
+                    cont++;
+                    aux = aux.getNext();
+                }
+            }
+        }
+        return cont;
+    }
+    
+    public int coutRegisters(String fild, String value){
+        int cont = 0, ind = getIndexFild(fild);
+        NoRecord aux;
+        for(int i = 0 ; i < this.elements.length ; i++){
+            if(this.elements[i]!=null){
+                if(this.elements[i].getInfo()[ind].trim().equals(value)){
+                    cont++;
+                }
+                aux = this.elements[i].getNext();
+                while(aux != null){
+                    if(aux.getInfo()[ind].trim().equals(value)){
+                        cont++;
+                    }
+                    aux = aux.getNext();
+                }
+            }
+        }
+        return cont;
+    }
+    
+    /**
+     * @return the fildsPKey
+     */
+    public String[] getFildsPKey() {
+        return fildsPKey;
     }
 }

@@ -22,6 +22,13 @@ public class NoRecord {
         this.last = null;
     }
 
+    public void printInfo(){
+        for(int i = 0 ; i < info.length; i++){
+            System.out.print(info[i]);
+        }
+        System.out.println("");
+    }
+    
     /**
      * @return the id
      */
