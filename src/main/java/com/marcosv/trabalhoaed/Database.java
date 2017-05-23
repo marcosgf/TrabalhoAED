@@ -25,8 +25,7 @@ public class Database {
         this.tables = new NoTable[this.nroTables];
     }
 
-    
-    public void innerJoin(String nameTable1, String nameTable2, String[] keys) {
+    public void innerJoinB(String nameTable1, String nameTable2, String[] keys) {
         Boolean aux = false, found = false;
         int cont = 0;
         NoRecord auxR1, auxR2;
@@ -39,6 +38,7 @@ public class Database {
             ind2[i] = tb2.getIndexFild(keys[i]);
         }
         for (int i = 0; i < tb1.getElements().length; i++) {
+            System.out.println(i);
             if (tb1.getElements()[i] != null) {
                 for (int j = 0; j < tb2.getElements().length; j++) {
                     if (tb2.getElements()[j] != null) {
@@ -73,9 +73,6 @@ public class Database {
                                 }
                                 auxR2 = auxR2.getNext();
                             }
-//                            if (found) {
-//                                break;
-//                            }
                         }
                     }
                 }
@@ -114,9 +111,6 @@ public class Database {
                                     }
                                     auxR2 = auxR2.getNext();
                                 }
-//                                if (found) {
-//                                    break;
-//                                }
                             }
                         }
                     }
@@ -125,6 +119,86 @@ public class Database {
             }
         }
         System.out.println("Tabela de tamanho igual a: " + cont);
+    }
+
+    private void vecInner(NoTable tb, String[] keys, String[][] tbl, int[] ind) {
+        int j = 0;
+        for (int i = 0; i < tb.getElements().length; i++) {
+            if (tb.getElements()[i] != null) {
+                tbl[j][0] = tb.getElements()[i].getId();
+                for (int l = 1; l < keys.length + 1; l++) {
+                    tbl[j][l] = tb.getElements()[i].getInfo()[ind[l - 1]];
+                }
+                j++;
+                NoRecord auxR = tb.getElements()[i].getNext();
+                while (auxR != null) {
+                    tbl[j][0] = auxR.getId();
+                    for (int l = 1; l < keys.length + 1; l++) {
+                        tbl[j][l] = auxR.getInfo()[ind[l - 1]];
+                    }
+                    auxR = auxR.getNext();
+                    j++;
+                }
+            }
+        }
+        System.out.println("qtd inserida: " + j);
+    }
+
+    public void innerJoin(String nameTable1, String nameTable2, String[] keys) {
+        Boolean aux = false, found = true;
+        long tempoInicial = System.currentTimeMillis();
+        String str1 = "", str2 = "";
+        MergeSort ms = new MergeSort();
+        int cont = 0;
+        NoRecord auxR1, auxR2;
+        NoTable tb1 = getTable(nameTable1);
+        NoTable tb2 = getTable(nameTable2);
+        int[] ind1 = new int[keys.length];
+        int[] ind2 = new int[keys.length];
+        for (int i = 0; i < keys.length; i++) {
+            ind1[i] = tb1.getIndexFild(keys[i]);
+            ind2[i] = tb2.getIndexFild(keys[i]);
+        }
+        String tbl1[][] = new String[tb1.getNroElements()][keys.length + 1];
+        String tbl2[][] = new String[tb2.getNroElements()][keys.length + 1];
+        vecInner(tb1, keys, tbl1, ind1);
+        vecInner(tb2, keys, tbl2, ind2);
+        ms.mergeSort(tbl1);
+        ms.mergeSort(tbl2);
+        System.out.println("tamanho matriz 1: "+tbl1.length);
+        System.out.println("tamanho matriz 2: "+tbl2.length);
+        int ult = 0;
+        for (int i = 0; i < tbl1.length; i++) {
+            for (int l = 1; l < tbl1[i].length; l++) {
+                str1 += tbl1[i][l];
+            }
+            for (int j = ult; j < tbl2.length; j++) {
+                for (int l = 1; l < tbl2[j].length; l++) {
+                    str2 += tbl2[j][l];
+                }
+                if(str1.equals(str2)){
+                    if(found)ult = j;
+                    found = false;
+                    searchRegister(tb2.getName(), tbl2[j][0]);
+                    cont +=2;
+                }
+                else if(str2.compareToIgnoreCase(str1)>0){
+                    str2 = "";
+                    break;
+                }
+                str2 = "";
+            }
+            found = true;
+            str1 = "";
+        }
+        System.out.println("quantidade de retornados: "+cont);
+        System.out.println("Tempo para busca de todos os registros: " + (System.currentTimeMillis() - tempoInicial));
+        /*
+         pega cada elemento de tbl1 e compara com tbl2  que está ordenando. 
+         encontrando pega o id daquela linha e busca no banco de dados 0(1)
+         retorna resultado se der match entre os dois 
+        
+         */
     }
 
     public NoTable[] getAllTables() {
@@ -196,8 +270,8 @@ public class Database {
             }
         }
     }
-    
-    public void selectCout (String table){
+
+    public void selectCout(String table) {
         int posT = (int) hashTable(table);
         NoTable auxT = this.tables[posT];
         while (!auxT.getName().equals(table) && auxT != null) {
@@ -209,8 +283,8 @@ public class Database {
             System.out.println(auxT.coutRegisters());
         }
     }
-    
-    public void selectCoutWhere(String table, String fild, String value){
+
+    public void selectCoutWhere(String table, String fild, String value) {
         int posT = (int) hashTable(table);
         NoTable auxT = this.tables[posT];
         while (!auxT.getName().equals(table) && auxT != null) {
@@ -219,7 +293,7 @@ public class Database {
         if (auxT == null) {
             System.out.println("Tabela Não Encontrada!");
         } else {
-            System.out.println(auxT.coutRegisters(fild,value));
+            System.out.println(auxT.coutRegisters(fild, value));
         }
     }
 
