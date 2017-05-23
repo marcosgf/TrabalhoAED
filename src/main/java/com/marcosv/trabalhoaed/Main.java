@@ -47,7 +47,7 @@ public class Main {
             ReadDump(database, file);
         }
         String[] filds = {"ndb_no", "nutr_no"};
-        database.innerJoinB("nut_data", "datsrcln", filds);
+        database.innerJoin("nut_data", "datsrcln", filds);
         while (true) {
             System.out.println("1 - Imprimir o banco de dados");
             System.out.println("2 - Buscar todos os Registros (sem impressão)");
@@ -60,7 +60,6 @@ public class Main {
             System.out.println("9 - INNER JOIN ");
             System.out.println("10 - LEFT OUTER JOIN ");
             System.out.println("11 - RIGHT OUTER JOIN ");
-            System.out.println("12 - FULL OUTER JOIN ");
             System.out.println("0 - Finalizar");
             int op = in.nextInt();
             switch (op) {

@@ -179,8 +179,9 @@ public class Database {
                 if(str1.equals(str2)){
                     if(found)ult = j;
                     found = false;
-                    searchRegister(tb2.getName(), tbl2[j][0]);
-                    cont +=2;
+                    searchRegister(tb1.getName(), tbl1[i][0],true);
+                    searchRegister(tb2.getName(), tbl2[j][0],true);
+                    cont ++;
                 }
                 else if(str2.compareToIgnoreCase(str1)>0){
                     str2 = "";
@@ -192,7 +193,7 @@ public class Database {
             str1 = "";
         }
         System.out.println("quantidade de retornados: "+cont);
-        System.out.println("Tempo para busca de todos os registros: " + (System.currentTimeMillis() - tempoInicial));
+        System.out.println("Tempo para InnerJoin: " + (System.currentTimeMillis() - tempoInicial));
         /*
          pega cada elemento de tbl1 e compara com tbl2  que está ordenando. 
          encontrando pega o id daquela linha e busca no banco de dados 0(1)
