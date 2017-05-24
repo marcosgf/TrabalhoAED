@@ -22,11 +22,12 @@ public class Main {
     /**
      * @param args the command line arguments
      */
+    @SuppressWarnings("empty-statement")
     public static void main(String[] args) throws IOException {
         // TODO code application logic here
         int tam = 0;
         String file = "";
-        String table, id, fild, value;
+        String table, id, fild, value, table1, table2, fild2;
         Database database;
         System.out.println("Trabalho de implementação para a disciplina de Algoritimos de Estrutura de Dados - PGCC-UFJF");
         System.out.println("Aluno: Marcos Valadão G. Ferreira");
@@ -46,8 +47,7 @@ public class Main {
             database = new Database(tam);
             ReadDump(database, file);
         }
-        String[] filds = {"ndb_no", "nutr_no"};
-        database.innerJoin("nut_data", "datsrcln", filds);
+        String[] filds;
         while (true) {
             System.out.println("1 - Imprimir o banco de dados");
             System.out.println("2 - Buscar todos os Registros (sem impressão)");
@@ -101,7 +101,64 @@ public class Main {
                     fild = in.next();
                     System.out.println("Digite o valor do campo:");
                     value = in.next();
-                    database.selectCoutWhere(table,fild,value);
+                    database.selectCoutWhere(table, fild, value);
+                    break;
+                case 9:
+                    System.out.println("Digite o nome da tabela 1:");
+                    table1 = in.next();
+                    System.out.println("Digite o nomeda tabela 2:");
+                    table2 = in.next();
+                    System.out.println("Digite o campo:");
+                    fild = in.next();
+                    System.out.println("Caso queria fazer o inner join com mais de um campo digite o campo ou 0 caso contrário:");
+                    fild2 = in.next();
+                    if (!fild2.equals("0")) {
+                        filds = new String[2];
+                        filds[0] = fild;
+                        filds[1] = fild2;
+                    } else {
+                        filds = new String[1];
+                        filds[0] = fild;
+                    }
+                    database.innerJoin(table1, table2, filds);
+                    break;
+                case 10:
+                    System.out.println("Digite o nome da tabela 1:");
+                    table1 = in.next();
+                    System.out.println("Digite o nomeda tabela 2:");
+                    table2 = in.next();
+                    System.out.println("Digite o campo:");
+                    fild = in.next();
+                    System.out.println("Caso queria fazer o inner join com mais de um campo digite o campo ou 0 caso contrário:");
+                    fild2 = in.next();
+                    if (!fild2.equals("0")) {
+                        filds = new String[2];
+                        filds[0] = fild;
+                        filds[1] = fild2;
+                    } else {
+                        filds = new String[1];
+                        filds[0] = fild;
+                    }
+                    database.lOuterJoin(table1, table2, filds);
+                    break;
+                case 11:
+                    System.out.println("Digite o nome da tabela 1:");
+                    table1 = in.next();
+                    System.out.println("Digite o nomeda tabela 2:");
+                    table2 = in.next();
+                    System.out.println("Digite o campo:");
+                    fild = in.next();
+                    System.out.println("Caso queria fazer o inner join com mais de um campo digite o campo ou 0 caso contrário:");
+                    fild2 = in.next();
+                    if (!fild2.equals("0")) {
+                        filds = new String[2];
+                        filds[0] = fild;
+                        filds[1] = fild2;
+                    } else {
+                        filds = new String[1];
+                        filds[0] = fild;
+                    }
+                    database.rOuterJoin(table1, table2, filds);
                     break;
                 default:
                     break;

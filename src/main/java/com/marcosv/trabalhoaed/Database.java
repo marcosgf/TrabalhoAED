@@ -53,7 +53,7 @@ public class Database {
                         if (aux) {
 //                            tb1.getElements()[i].printInfo();
 //                            tb2.getElements()[j].printInfo();
-                            cont += 2;
+                            cont ++;
                         } else {
                             auxR2 = tb2.getElements()[j].getNext();
                             while (auxR2 != null) {
@@ -68,7 +68,7 @@ public class Database {
                                 if (aux) {
 //                                    tb1.getElements()[i].printInfo();
 //                                    auxR2.printInfo();
-                                    cont += 2;
+                                    cont ++;
                                     found = true;
                                 }
                                 auxR2 = auxR2.getNext();
@@ -89,7 +89,7 @@ public class Database {
                                 }
                             }
                             if (aux) {
-                                cont += 2;
+                                cont ++;
 //                                auxR1.printInfo();
 //                                tb2.getElements()[j].printInfo();
                             } else {
@@ -104,7 +104,7 @@ public class Database {
                                         }
                                     }
                                     if (aux) {
-                                        cont += 2;
+                                        cont ++;
 //                                        auxR1.printInfo();
 //                                        auxR2.printInfo();
                                         found = true;
@@ -165,8 +165,6 @@ public class Database {
         vecInner(tb2, keys, tbl2, ind2);
         ms.mergeSort(tbl1);
         ms.mergeSort(tbl2);
-        System.out.println("tamanho matriz 1: "+tbl1.length);
-        System.out.println("tamanho matriz 2: "+tbl2.length);
         int ult = 0;
         for (int i = 0; i < tbl1.length; i++) {
             for (int l = 1; l < tbl1[i].length; l++) {
@@ -179,8 +177,8 @@ public class Database {
                 if(str1.equals(str2)){
                     if(found)ult = j;
                     found = false;
-                    searchRegister(tb1.getName(), tbl1[i][0],true);
-                    searchRegister(tb2.getName(), tbl2[j][0],true);
+                    searchRegister(tb1.getName(), tbl1[i][0]);
+                    searchRegister(tb2.getName(), tbl2[j][0]);
                     cont ++;
                 }
                 else if(str2.compareToIgnoreCase(str1)>0){
@@ -194,13 +192,71 @@ public class Database {
         }
         System.out.println("quantidade de retornados: "+cont);
         System.out.println("Tempo para InnerJoin: " + (System.currentTimeMillis() - tempoInicial));
-        /*
-         pega cada elemento de tbl1 e compara com tbl2  que está ordenando. 
-         encontrando pega o id daquela linha e busca no banco de dados 0(1)
-         retorna resultado se der match entre os dois 
-        
-         */
     }
+    
+    private void outerJoin(String nameTable1, String nameTable2, String[] keys) {
+        Boolean aux = false, found = true;
+        long tempoInicial = System.currentTimeMillis();
+        String str1 = "", str2 = "";
+        MergeSort ms = new MergeSort();
+        int cont = 0;
+        NoRecord auxR1, auxR2;
+        NoTable tb1 = getTable(nameTable1);
+        NoTable tb2 = getTable(nameTable2);
+        int[] ind1 = new int[keys.length];
+        int[] ind2 = new int[keys.length];
+        for (int i = 0; i < keys.length; i++) {
+            ind1[i] = tb1.getIndexFild(keys[i]);
+            ind2[i] = tb2.getIndexFild(keys[i]);
+        }
+        String tbl1[][] = new String[tb1.getNroElements()][keys.length + 1];
+        String tbl2[][] = new String[tb2.getNroElements()][keys.length + 1];
+        vecInner(tb1, keys, tbl1, ind1);
+        vecInner(tb2, keys, tbl2, ind2);
+        ms.mergeSort(tbl1);
+        ms.mergeSort(tbl2);
+        int ult = 0;
+        for (int i = 0; i < tbl1.length; i++) {
+            for (int l = 1; l < tbl1[i].length; l++) {
+                str1 += tbl1[i][l];
+            }
+            
+            for (int j = ult; j < tbl2.length; j++) {
+                for (int l = 1; l < tbl2[j].length; l++) {
+                    str2 += tbl2[j][l];
+                }
+                if(str1.equals(str2)){
+                    if(found)ult = j;
+                    found = false;
+                    searchRegister(tb1.getName(), tbl1[i][0]);
+                    searchRegister(tb2.getName(), tbl2[j][0]);
+                    cont ++;
+                }
+                else if(str2.compareToIgnoreCase(str1)>0){
+                    str2 = "";
+                    break;
+                }
+                str2 = "";
+            }
+            if(found){
+                searchRegister(tb1.getName(), tbl1[i][0]);
+                cont++;
+            }
+            found = true;
+            str1 = "";
+        }
+        System.out.println("quantidade de retornados: "+cont);
+        System.out.println("Tempo para outer join: " + (System.currentTimeMillis() - tempoInicial));
+    }
+    
+    public void lOuterJoin(String nameTable1, String nameTable2, String[] keys) {
+        outerJoin(nameTable1, nameTable2, keys);
+    }
+    
+    public void rOuterJoin(String nameTable1, String nameTable2, String[] keys) {
+        outerJoin(nameTable2, nameTable1, keys);
+    }
+    
 
     public NoTable[] getAllTables() {
         return tables;
@@ -453,9 +509,7 @@ public class Database {
                 int posR = (int) hashRegister(id, t.getElements().length);
                 if (t.getElements()[posR].getId().equals(id)) {
                     for (int i = 0; i < t.getElements()[posR].getInfo().length; i++) {
-                        //System.out.print(t.getElements()[posR].getInfo()[i] + " ");
                     }
-                    //System.out.println("");
                 } else {
                     r = t.getElements()[posR].getNext();
                     while (!r.getId().equals(id) && r != null) {
@@ -463,9 +517,7 @@ public class Database {
                     }
                     if (r.getId().equals(id)) {
                         for (int i = 0; i < r.getInfo().length; i++) {
-                            //System.out.print(r.getInfo()[i] + " ");
                         }
-                        //System.out.println("");
                     } else {
                         System.out.println("REGISTRO NÃO ENCONTRADO!");
                     }
