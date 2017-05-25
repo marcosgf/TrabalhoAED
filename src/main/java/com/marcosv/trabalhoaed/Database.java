@@ -177,8 +177,8 @@ public class Database {
                 if(str1.equals(str2)){
                     if(found)ult = j;
                     found = false;
-                    searchRegister(tb1.getName(), tbl1[i][0]);
-                    searchRegister(tb2.getName(), tbl2[j][0]);
+                    searchRegister(tb1.getName(), tbl1[i][0],true);
+                    searchRegister(tb2.getName(), tbl2[j][0],true);
                     cont ++;
                 }
                 else if(str2.compareToIgnoreCase(str1)>0){
