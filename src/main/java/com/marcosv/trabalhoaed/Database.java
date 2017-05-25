@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.Scanner;
 
 /*
  * To change this license header, choose License Headers in Project Properties.
@@ -29,19 +30,19 @@ public class Database {
         Boolean aux = false, found = false;
         int cont = 0;
         NoRecord auxR1, auxR2;
-        NoTable tb1 = getTable(nameTable1);
+        NoTable tb1 = getTable(nameTable1);//retorna tabela a apartir do nome
         NoTable tb2 = getTable(nameTable2);
         int[] ind1 = new int[keys.length];
         int[] ind2 = new int[keys.length];
         for (int i = 0; i < keys.length; i++) {
-            ind1[i] = tb1.getIndexFild(keys[i]);
+            ind1[i] = tb1.getIndexFild(keys[i]);//retorna o indice do campo a partir do nome no vetor de informações do registro
             ind2[i] = tb2.getIndexFild(keys[i]);
         }
         for (int i = 0; i < tb1.getElements().length; i++) {
             System.out.println(i);
             if (tb1.getElements()[i] != null) {
                 for (int j = 0; j < tb2.getElements().length; j++) {
-                    if (tb2.getElements()[j] != null) {
+                    if (tb2.getElements()[j] != null) {//pular posiçoes vazias nos vetores
                         for (int k = 0; k < keys.length; k++) {
                             if (tb1.getElements()[i].getInfo()[ind1[k]].trim().equals(tb2.getElements()[j].getInfo()[ind2[k]].trim())) {
                                 aux = true;
@@ -54,7 +55,7 @@ public class Database {
 //                            tb1.getElements()[i].printInfo();
 //                            tb2.getElements()[j].printInfo();
                             cont ++;
-                        } else {
+                        } else { // procura na lista encadeada do indice
                             auxR2 = tb2.getElements()[j].getNext();
                             while (auxR2 != null) {
                                 for (int k = 0; k < keys.length; k++) {
@@ -76,7 +77,7 @@ public class Database {
                         }
                     }
                 }
-                auxR1 = tb1.getElements()[i].getNext();
+                auxR1 = tb1.getElements()[i].getNext();//varrer lista encadeada da tabela da esquerda
                 while (auxR1 != null) {
                     for (int j = 0; j < tb2.getElements().length; j++) {
                         if (tb2.getElements()[j] != null) {
@@ -121,13 +122,16 @@ public class Database {
         System.out.println("Tabela de tamanho igual a: " + cont);
     }
 
+    /*
+    Método para construção da matriz auxiliar para consultas JOIN
+    */
     private void vecInner(NoTable tb, String[] keys, String[][] tbl, int[] ind) {
         int j = 0;
         for (int i = 0; i < tb.getElements().length; i++) {
             if (tb.getElements()[i] != null) {
-                tbl[j][0] = tb.getElements()[i].getId();
+                tbl[j][0] = tb.getElements()[i].getId();//identificador sempre na primeira coluna da matriz
                 for (int l = 1; l < keys.length + 1; l++) {
-                    tbl[j][l] = tb.getElements()[i].getInfo()[ind[l - 1]];
+                    tbl[j][l] = tb.getElements()[i].getInfo()[ind[l - 1]];//demais informações
                 }
                 j++;
                 NoRecord auxR = tb.getElements()[i].getNext();
@@ -156,32 +160,32 @@ public class Database {
         int[] ind1 = new int[keys.length];
         int[] ind2 = new int[keys.length];
         for (int i = 0; i < keys.length; i++) {
-            ind1[i] = tb1.getIndexFild(keys[i]);
+            ind1[i] = tb1.getIndexFild(keys[i]);//retorna o indice do campo a partir do nome no vetor de informações do registro            
             ind2[i] = tb2.getIndexFild(keys[i]);
         }
-        String tbl1[][] = new String[tb1.getNroElements()][keys.length + 1];
+        String tbl1[][] = new String[tb1.getNroElements()][keys.length + 1];//matriz auxiliar
         String tbl2[][] = new String[tb2.getNroElements()][keys.length + 1];
         vecInner(tb1, keys, tbl1, ind1);
         vecInner(tb2, keys, tbl2, ind2);
-        ms.mergeSort(tbl1);
+        ms.mergeSort(tbl1);//chamada para ordenação da matriz a partir do algoritmo mergeSort
         ms.mergeSort(tbl2);
         int ult = 0;
         for (int i = 0; i < tbl1.length; i++) {
             for (int l = 1; l < tbl1[i].length; l++) {
-                str1 += tbl1[i][l];
+                str1 += tbl1[i][l]; // concatena os campos na tabela da esquerda no qual a busca está sendo feita
             }
             for (int j = ult; j < tbl2.length; j++) {
                 for (int l = 1; l < tbl2[j].length; l++) {
-                    str2 += tbl2[j][l];
+                    str2 += tbl2[j][l];// concatena os campos na tabela da direita no qual a busca está sendo feita
                 }
-                if(str1.equals(str2)){
+                if(str1.equals(str2)){//se forem iguais deu match
                     if(found)ult = j;
                     found = false;
-                    searchRegister(tb1.getName(), tbl1[i][0],true);
-                    searchRegister(tb2.getName(), tbl2[j][0],true);
+                    searchRegister(tb1.getName(), tbl1[i][0]);//procura na estrutura indexada o registro
+                    searchRegister(tb2.getName(), tbl2[j][0]);
                     cont ++;
                 }
-                else if(str2.compareToIgnoreCase(str1)>0){
+                else if(str2.compareToIgnoreCase(str1)>0){//
                     str2 = "";
                     break;
                 }
@@ -206,14 +210,14 @@ public class Database {
         int[] ind1 = new int[keys.length];
         int[] ind2 = new int[keys.length];
         for (int i = 0; i < keys.length; i++) {
-            ind1[i] = tb1.getIndexFild(keys[i]);
+            ind1[i] = tb1.getIndexFild(keys[i]);//retorna o indice do campo a partir do nome no vetor de informações do registro
             ind2[i] = tb2.getIndexFild(keys[i]);
         }
         String tbl1[][] = new String[tb1.getNroElements()][keys.length + 1];
         String tbl2[][] = new String[tb2.getNroElements()][keys.length + 1];
         vecInner(tb1, keys, tbl1, ind1);
         vecInner(tb2, keys, tbl2, ind2);
-        ms.mergeSort(tbl1);
+        ms.mergeSort(tbl1);//chamada para ordenação da matriz a partir do algoritmo mergeSort
         ms.mergeSort(tbl2);
         int ult = 0;
         for (int i = 0; i < tbl1.length; i++) {
@@ -225,7 +229,7 @@ public class Database {
                 for (int l = 1; l < tbl2[j].length; l++) {
                     str2 += tbl2[j][l];
                 }
-                if(str1.equals(str2)){
+                if(str1.equals(str2)){//se forem iguais deu match
                     if(found)ult = j;
                     found = false;
                     searchRegister(tb1.getName(), tbl1[i][0]);
@@ -238,7 +242,7 @@ public class Database {
                 }
                 str2 = "";
             }
-            if(found){
+            if(found){//caso não tenha ocorrido match o registro da esquerda é retornando da mesma forma
                 searchRegister(tb1.getName(), tbl1[i][0]);
                 cont++;
             }
@@ -307,8 +311,8 @@ public class Database {
             System.out.println("Tabela Não Encontrada!");
         } else {
             int posR = (int) hashRegister(id, auxT.getElements().length);
-            if (auxT.getElements()[posR].getNext() == null && auxT.getElements()[posR].getId().equals(id)) {
-                auxT.getElements()[posR] = null;
+            if (auxT.getElements()[posR].getNext() == null && auxT.getElements()[posR].getId().equals(id)) {//registro na primeira posição e sem lista encadeada
+                auxT.getElements()[posR] = null;//libera o espaço do vetor
             } else {
                 if (auxT.getElements()[posR].getId().equals(id)) {
                     auxT.getElements()[posR] = auxT.getElements()[posR].getNext();

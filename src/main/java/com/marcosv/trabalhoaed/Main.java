@@ -171,7 +171,7 @@ public class Main {
 
     static void ReadDump(Database database, String path) throws IOException {
         int j = 0, TSize;
-        //BufferedWriter buffWrite = new BufferedWriter(new FileWriter("search.txt"));
+        BufferedWriter buffWrite = new BufferedWriter(new FileWriter("search.txt"));
         String nameTable, text, id = "";
         String[] filds, info, line;
         NoTable t = null;
@@ -221,7 +221,7 @@ public class Main {
                     for (int k = 0; k < pkeys.length; k++) {
                         id += info[pkeys[k]].trim();
                     }
-                    //buffWrite.append(nameTable + "\t" + id.trim() + "\n");
+                    buffWrite.append(nameTable + "\t" + id.trim() + "\n");
                     database.insertRegister(info, id.trim(), TSize, records);
                     i++;
                     id = "";
@@ -238,7 +238,7 @@ public class Main {
         System.out.println("Tempo para inserção de todos os registros: " + (System.currentTimeMillis() - tempoInicial));
         text = null;
         System.gc();
-        //buffWrite.close();
+        buffWrite.close();
     }
 
     public static String[] searchPkey(String nameTable, String[] line, int min) throws IOException {
